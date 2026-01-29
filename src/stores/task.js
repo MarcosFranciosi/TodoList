@@ -1,0 +1,65 @@
+// Utilities
+import { defineStore } from 'pinia'
+import { useAlertStore } from '@/stores/alert';
+const alertStore = useAlertStore()
+
+export const useTaskStore = defineStore('task', {
+  state: () => ({
+    tasks: [
+        { title: 'Estudar Vue3', subtitle: 'Estudar Vue3 com Vuetify' },
+        { title: 'Ler Documentação', subtitle: 'Ler e estudar a Documentação do Vuetify' }
+    ],
+    titleTaskCreating: "",    
+    showDialogTaskFields: false,
+    showDialogDelete: false,
+    indexTaskSelected: 0
+  }),
+  actions: {
+    addTask() {
+        if (this.titleTaskCreating.length < 5) return;
+        this.tasks.push({
+            title: this.titleTaskCreating,
+            done: false
+        });
+        this.titleTaskCreating = "";
+        this.saveLocalData()
+        alertStore.notifyAlertCreated()
+    },
+    deleteTask () {
+        this.tasks.splice(this.indexTaskSelected, 1);
+        this.toggleDelete();
+        this.saveLocalData()
+        alertStore.notifyAlertDeleted()
+    },
+    toggleDelete (index) {
+        if (typeof index === 'number') {
+            this.indexTaskSelected = index
+        }
+        this.showDialogDelete = !this.showDialogDelete
+    },
+    updateTask () {
+        this.saveLocalData();
+        this.toggleEdit();
+        alertStore.notifyAlertUpdated()
+    },
+    toggleEdit (index) {
+        if (typeof index === 'number') {
+            this.indexTaskSelected = index
+        }
+        this.showDialogTaskFields = !this.showDialogTaskFields;
+    },
+    saveLocalData () {
+        localStorage.setItem('tasks', JSON.stringify(this.tasks))
+    },
+    getTasks () {
+        let items = localStorage.getItem('tasks')
+        if (items) {
+            this.tasks = JSON.parse(items)
+        }
+    },
+    toggleDoneTask (index) {
+        this.tasks[index].done = !this.tasks[index].done
+        this.saveLocalData()
+    }
+  }
+})
